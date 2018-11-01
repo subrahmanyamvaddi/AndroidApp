@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Detect</string>
+    <string name="signInTitle">Sign In</string>
+    <string name="loginButtonTitle">Login</string>
+    <string name="edit_Message">Enter a Message</string>
+    <string name="button_click">Send Message</string>
+    <string name="welcome_Text">Welcome!</string>
+    <string name="finalText">Welcome to Final Activity!</string>
+    <string name="goToFinal">Go To Final Activity!</string>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
