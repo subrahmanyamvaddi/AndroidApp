@@ -4,23 +4,33 @@ package com.example.subrahmanyamvaddi.detect;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 
 
@@ -29,8 +39,12 @@ import java.util.Locale;
  */
 public class MainFragment extends Fragment {
 
-    private Button btSpeak;
+    private Button btSpeak,capImage, showIm, btReceive;
     private EditText etSpeak;
+    private ImageView dispImage;
+
+    private String curImagePath = null;
+    private static final int IMAGE_REQUEST = 1;
 
     private SpeechRecognizer speechRecognizer;
     private Intent mIntent;
@@ -48,6 +62,10 @@ public class MainFragment extends Fragment {
 
         btSpeak = view.findViewById(R.id.button);
         etSpeak = view.findViewById(R.id.editText2);
+        capImage = view.findViewById(R.id.button4);
+        dispImage = view.findViewById(R.id.imageViewMain);
+        showIm = view.findViewById(R.id.button6);
+        btReceive = view.findViewById(R.id.buttonSend);
 
         checkPermission();
 
@@ -105,6 +123,38 @@ public class MainFragment extends Fragment {
             }
         });
 
+        capImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if(cameraIntent.resolveActivity(getActivity().getPackageManager())!= null)
+                {
+                    File imagefile = null;
+
+                    try {
+                        imagefile = getImageFile();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    if(imagefile != null){
+                        Uri imageUri = FileProvider.getUriForFile(getActivity(),"com.example.android.fileprovider",imagefile);
+                        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,imageUri);
+                        startActivityForResult(cameraIntent,IMAGE_REQUEST);
+                    }
+
+                }
+            }
+        });
+
+        showIm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bitmap bitmap = BitmapFactory.decodeFile(curImagePath);
+                dispImage.setImageBitmap(bitmap);
+            }
+        });
+
         btSpeak.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -126,7 +176,25 @@ public class MainFragment extends Fragment {
             }
         });
 
+        btReceive.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getActivity(),BluetoothActivity.class));
+            }
+        });
+
         return view;
+    }
+
+    private File getImageFile() throws IOException
+    {
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String filename = "jpg_"+timestamp+ "_";
+        File storageDir = getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+        File imgfile = File.createTempFile(filename,".jpg",storageDir);
+        curImagePath = imgfile.getAbsolutePath();
+        return  imgfile;
     }
 
     private void checkPermission(){
